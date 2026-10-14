@@ -6,7 +6,7 @@
 The current public repository contains project notes and release materials.  
 The prototype demonstration video is available under the GitHub Releases section:
 
-[Watch/download BIAF v0.1 demonstration](link-to-release)
+https://github.com/Blockchain-Integrated-Accounting/biaf-framework/releases/tag/v0.1.0
 
 ## Recognition
 
