@@ -1,5 +1,17 @@
 # Blockchain-Integrated Accounting Framework (BIAF)
 
+
+## Demonstration video
+
+The current public repository contains project notes and release materials.  
+The prototype demonstration video is available under the GitHub Releases section:
+
+[Watch/download BIAF v0.1 demonstration](link-to-release)
+
+## Recognition
+
+The BIAF paper received the Best Cutting-Edge Technology Paper Award at ENTRenova 2026.
+
 ## Overview
 
 The **Blockchain-Integrated Accounting Framework (BIAF)** is a research-driven software framework exploring how blockchain-based transaction execution can be directly integrated with conventional double-entry accounting, financial reporting, taxation, audit, and supervisory controls.
