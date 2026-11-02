@@ -1,466 +1,100 @@
 # Blockchain-Integrated Accounting Framework (BIAF)
 
+**Verifiable accounting from blockchain events, with local records and optional on-chain declarations.**
 
-## Demonstration video
+BIAF is a research project exploring how commercial transactions recorded on a blockchain can be interpreted through conventional double-entry accounting. Its working prototype links invoices, receipts, acceptance, USDC payments, credit notes and refunds with buyer and seller journals, reports and reconciliation checks.
 
-The current public repository contains project notes and release materials.  
-The prototype demonstration video is available under the GitHub Releases section:
+The blockchain preserves transaction history; accounting interpretation remains a distinct layer. Credit notes record subsequent returns and discounts without rewriting earlier events.
 
-https://github.com/Blockchain-Integrated-Accounting/biaf-framework/releases/tag/v0.1.0
+## Project status
 
-## Recognition
+**V4 functional scope implemented; release documentation and repository review in progress as of 2 November 2026.** The prototype runs in a local Hardhat environment. Functional checks have been performed during development; independent testing and feedback remain part of the release process. This is experimental research software, not a production-audited accounting product.
 
-The BIAF paper received the Best Cutting-Edge Technology Paper Award at ENTRenova 2026.
+V4 extends the earlier commercial and settlement workflows with off-chain packing lists, cryptographically linked supporting PDFs, inventory valuations, local inventory postings and optional inventory Blockchain Domain Expansion (BDE).
 
-## Overview
+## Demonstration and research
 
-The **Blockchain-Integrated Accounting Framework (BIAF)** is a research-driven software framework exploring how blockchain-based transaction execution can be directly integrated with conventional double-entry accounting, financial reporting, taxation, audit, and supervisory controls.
+The existing prototype demonstration is available in [GitHub Releases](https://github.com/Blockchain-Integrated-Accounting/biaf-framework/releases/tag/v0.1.0). It illustrates the version recorded at that time and should not be read as a demonstration of every later V4 feature.
 
-BIAF connects commercial documents and their economic lifecycle — including issuance, counterparty acceptance, settlement, partial payments, credit notes, and refunds — with corresponding accounting records generated from verifiable blockchain events.
+The BIAF paper received the **Best Cutting-Edge Technology Paper Award at ENTRenova 2026**. Publication links and full citations will be added when available.
 
-The framework is designed around a simple principle:
+## Current capabilities
 
-**blockchain records the economic event, while BIAF interprets that event through conventional accounting logic.**
+| Area | Implemented prototype scope |
+| --- | --- |
+| Commercial documents | Wallet-based invoice and receipt issuance, per-seller document identities, document status and counterparty acknowledgment where required |
+| Settlement | USDC payments, partial payments, outstanding balances and document-linked settlement |
+| Credit notes | Buyer-requested and seller-initiated routes, approval/rejection, credit allocation, eligible refunds, remaining-credit tracking and corresponding accounting/audit logic |
+| Supporting documents | Goods/service catalogue and drafts; locally prepared packing-list or service-detail PDFs for invoices, receipts and supported credit-note workflows |
+| PDF verification | The exact PDF hash is committed at issuance; importing a different file fails even if its amounts match. Business details are captured from the local registry |
+| Accounting | Buyer/seller journals, receivables/payables, VAT treatment, purchase classification, inventory-category reclassification, credit and payment entries |
+| Inventory | Approved opening/adoption and closing valuations, version history, prior-closing carry-forward, explicit zero values, external valuation JSON input and reviewed local opening/closing postings |
+| Reporting | Journal and counterparty views, trial balance, VAT report, P&L with periodic COGS, and a balance sheet based on posted journals |
+| Optional BDE | On-chain publication and verification of approved aggregate inventory valuations, separate from local approval and journal posting |
+| Review and backup | Audit checks, CSV reporting exports, scoped JSON backups/restoration, and exact original-PDF downloads |
 
-The objective is not to replace established accounting standards or financial reporting practices, but to investigate whether blockchain infrastructure can provide a shared and verifiable transaction layer beneath them.
+### Packing lists and PDFs
 
-BIAF originated from academic research in accounting and has evolved into a functional EVM-based prototype developed and tested locally using a Hardhat blockchain environment.
+Detailed item descriptions, quantities, units, prices and supporting business information stay in local files. The blockchain records the attachment commitment rather than the complete PDF.
 
----
+A prepared PDF freezes its supporting draft. The seller may discard an unissued draft/PDF pair after the application checks its live issuance status; issued attachments remain unchanged. Buyer acknowledgment of a committed invoice PDF is distinct from payment. Receipt payment does not attest PDF review, and credit-note acknowledgment depends on the credit route.
 
-## Motivation
+The PDF's printed attachment reference helps users distinguish files. A written cross-reference to a commercial document is a navigation aid; verification still depends on the exact committed file hash. Hash verification establishes file integrity and association, not that goods were physically delivered or that the stated values are correct.
 
-Traditional accounting systems generally rely on:
+### Inventory and financial reporting
 
-- Separate databases maintained by individual organizations
-- Post-hoc reconciliation between counterparties
-- Manual or semi-automated controls
-- Independent transaction, payment, and accounting records
+V4 accepts valuations supported by stocktaking or external calculations. Users declare the valuation method; BIAF does not calculate FIFO, weighted-average cost or LIFO, or validate their suitability for a reporting basis.
 
-Blockchain systems, by contrast, provide:
+Approved valuations can supply the periodic COGS calculation. Separate reviewed postings reconcile journal inventory to the approved opening/closing categories. Local approval and optional BDE do not themselves create journal entries. Consequently, an approved valuation may affect the valuation-based P&L calculation before it appears in the posted-journal balance sheet; the application displays reconciliation information.
 
-- Deterministic transaction execution
-- Cryptographic authorization
-- Immutable transaction histories
-- Shared verification of state changes
+The inventory categories support aggregate accounting analysis. They are not a perpetual quantity-based warehouse system, and V4 does not automatically generate physical stock movements from packing-list lines.
 
-However, blockchain transactions generally lack native accounting semantics.
+## Blockchain Domain Expansion
 
-BIAF investigates whether these two environments can be connected so that commercial transactions recorded through blockchain infrastructure can simultaneously become structured accounting events.
+BDE is the optional extension of blockchain records beyond transactional events to declared accounting values.
 
-This approach may reduce:
+- **Available in V4:** aggregate inventory valuation declarations, with entity, period, balance type, registration time and version relationships. Category values, supporting notes and the declared valuation method remain local.
+- **Planned:** optional BDE publication for equity, balance sheet, P&L and fixed assets. These publication workflows are not implemented in V4. Existing local financial reports are separate from future on-chain publication.
 
-- Reconciliation requirements
-- Duplicate transaction recording
-- Inconsistencies between commercial documents and payments
-- Certain payment risks, such as incorrect payment amounts or destination wallets
-- Delays between transaction execution and accounting recognition
+The black-and-gold monk marks optional BDE actions; the white monk marks off-chain exports. A wallet signature attributes a declaration to a wallet. It is not independent audit assurance or a guarantee of real-world accuracy.
 
-It may also improve transaction information available to both businesses and individual consumers by linking commercial documents, counterparties, payment status, and accounting consequences within the same verifiable workflow.
+## Design principles and boundaries
 
----
+- **Accounting first:** supported economic events are interpreted through explicit accounting rules and mappings.
+- **Human authorization:** on-chain actions require wallet authorization; local approvals and classification choices remain visible accounting decisions.
+- **On-chain/off-chain separation:** execution, commitments and optional declarations are separated from local journals, business details, documents and reports.
+- **Traceable adjustments:** credit notes preserve the commercial history; valuation replacement retains earlier approved versions and local posting corrections use reviewed differences.
+- **Local operation:** the current UI and its records run locally. Blockchain commitments do not back up the local PDF files or all accounting choices.
+- **Interoperability as a development direction:** CSV/JSON exports support review, backup and further processing. Direct ERP import requires system-specific mapping or an adapter; V4 does not provide a ready-made ERP connector.
 
-## Current Prototype Capabilities
+The accounting mappings reflect the prototype's stated chart and reporting choices. The framework does not claim universal statutory, tax or regulatory compliance. A balanced report establishes arithmetic consistency, not completeness of all business records or audit assurance.
 
-The current BIAF prototype supports a growing commercial and accounting transaction lifecycle.
+## Roadmap
 
-### Commercial Documents
+| Stage | Status / direction |
+| --- | --- |
+| Commercial, settlement, credit-note and reporting core | Implemented and tested locally |
+| V4 packing lists, PDF integrity, inventory valuation/accounting and inventory BDE | Functional scope implemented; release review and independent feedback pending |
+| V5 equity and corporate accounting | Next development module: incorporation, partner/shareholder accounts and contributions, with coordinated opening-balance treatment |
+| Audit-console expansion | Deferred until after the equity work to avoid duplicating inventory/equity BDE status work |
+| Payroll and employee accounting | Later module, with appropriate confidentiality boundaries |
+| Public testnet / network evaluation | Later phase after module validation; no public-testnet deployment is claimed for V4 |
+| External ERP/IMS adapters and supervised AI assistance | Future work; no direct integration or autonomous operation is claimed |
 
-- Invoice issuance
-- Receipt issuance
-- Seller and buyer identification through blockchain wallets
-- Buyer acceptance / cryptographic authorization
-- Document status tracking
-- Commercial document descriptions
-- On-chain economic commitments
+See the [detailed roadmap](roadmap/roadmap-2026-27.md) and [architecture overview](docs/architecture.md). The roadmap uses delivery status and sequencing rather than treating earlier calendar estimates as completed work.
 
-### Settlement
+## Repository scope
 
-- Stablecoin-based settlement
-- Full payments
-- Partial payments
-- Outstanding balance tracking
-- Buyer-to-seller settlement
-- Wallet-based transaction authorization
+This [public repository](https://github.com/Blockchain-Integrated-Accounting/biaf-framework) contains research and conceptual documentation, roadmap and demonstration materials. The working implementation is maintained in a [separate private repository](https://github.com/N-0-name983/BIAF), which requires access authorization.
 
-### Credit Notes and Refunds
+Installation instructions, dependency lists, local test configuration and implementation review notes belong to that private repository. Public source-code release and licensing decisions will be made explicitly; this README does not promise that the private implementation will be published on a particular date.
 
-BIAF now includes implemented and tested credit-note functionality, including:
+## Limitations and participation
 
-- Credit-note issuance
-- Association with original commercial documents
-- Buyer-requested credit-note workflows
-- Seller approval or rejection
-- Credit application against eligible transactions
-- Refund settlement
-- Partial credit usage
-- Remaining credit tracking
-- Controls designed to prevent improper or duplicate credit use
-- Corresponding seller and buyer accounting treatment
+BIAF remains experimental and unaudited for production use. Local tests do not establish readiness for mainnet operation, independent security assurance or jurisdiction-specific compliance. Equity/incorporation, full annual closing and profit distribution, payroll, fixed-asset operations, automatic valuation engines and complete ERP/IMS integration remain outside V4's implemented scope.
 
-The current credit-note implementation has passed functional accounting and workflow testing, with additional independent testing continuing.
+Research feedback and collaboration are welcome through this repository's [issues](https://github.com/Blockchain-Integrated-Accounting/biaf-framework/issues). Reports should distinguish observed behavior from proposed accounting or workflow changes.
 
-### Accounting Engine
+Licensing arrangements remain under evaluation. Refer to any applicable repository/file-level license; public visibility alone does not establish an open-source license grant.
 
-BIAF automatically interprets blockchain events through conventional double-entry accounting logic.
-
-Current accounting functionality includes:
-
-- Seller-side journals
-- Buyer-side journals
-- Revenue recognition
-- Inventory / expense recognition
-- Accounts receivable
-- Accounts payable
-- VAT payable
-- VAT claimable
-- Bank / settlement accounts
-- Credit-note accounting
-- Refund accounting
-- Partial settlement accounting
-
-### Reporting
-
-The prototype currently includes:
-
-- Journal views
-- Buyer and seller subledgers
-- Trial balance generation
-- VAT reporting
-- Balance-sheet / financial reporting logic
-- CSV and accounting-data exports
-
-### Audit and Reconciliation
-
-BIAF includes an experimental audit layer designed to compare blockchain events with accounting records.
-
-Current functionality includes:
-
-- Blockchain-to-accounting reconciliation
-- Identification of missing accounting entries
-- Review of document acceptance and settlement events
-- Credit-note and refund audit logic
-- Accounting consistency checks
-- Audit-oriented transaction visibility
-
----
-
-## Consumer and Transaction Safety
-
-Although BIAF is primarily an accounting framework, its transaction architecture may also reduce certain operational risks for businesses and individual consumers.
-
-By linking settlement directly to an identified commercial document and its counterparties, BIAF can reduce risks such as:
-
-- Sending funds to an unintended wallet
-- Paying an incorrect amount
-- Settling the wrong commercial document
-- Losing visibility over amounts already paid
-- Uncertainty regarding remaining balances
-- Separation between payment information and the underlying invoice or receipt
-
-The objective is not to eliminate transaction risk entirely, but to provide better structured information and stronger cryptographic linkage between the commercial document, the parties, and the corresponding payment.
-
----
-
-## Scope and Design Principles
-
-BIAF is guided by several core principles.
-
-### Accounting-First Design
-
-Blockchain transactions are interpreted as economic and accounting events rather than merely technical state changes.
-
-### Verifiable Commercial Relationships
-
-Invoices, receipts, credit notes, payments, refunds, and related events are linked through identifiable transaction relationships.
-
-### Human Authorization
-
-Economically significant actions remain subject to cryptographic authorization through blockchain wallets.
-
-### Compatibility With Established Accounting
-
-BIAF is designed to integrate with conventional:
-
-- Double-entry accounting
-- Charts of accounts
-- Tax reporting
-- Financial statements
-- Audit and reconciliation processes
-
-The framework is intended to complement existing accounting standards rather than replace them.
-
-### Modular Architecture
-
-BIAF is being developed progressively so that blockchain execution, accounting logic, reporting, audit, and future external-system integrations can remain conceptually separable.
-
-### Privacy-Aware Development
-
-Not all commercial or accounting information should necessarily be stored directly on a public blockchain.
-
-Future development will therefore continue to evaluate appropriate boundaries between:
-
-- On-chain economic commitments
-- Cryptographic proofs / hashes
-- Off-chain commercial information
-- Business identity information
-- Personally identifiable information
-
----
-
-## Current Development Focus
-
-The next major development phase focuses on **detailed commercial documents, packing-list information, and inventory-system integration**.
-
-The objective is to extend the current BIAF document model beyond aggregate transaction values and associate invoices and receipts with structured information such as:
-
-- Individual goods or services
-- Product descriptions
-- Quantities
-- Units of measurement
-- Unit prices
-- VAT treatment
-- Vendor information
-- Client information
-- Delivery / commercial information
-
-Rather than necessarily storing all detailed information directly on-chain, BIAF will investigate the use of cryptographic hashes or references that allow detailed commercial documents to be securely associated with their corresponding blockchain record.
-
-This could allow a document to be independently verified while preserving scalability and appropriate privacy.
-
----
-
-## Inventory-System Integration
-
-Structured commercial-document information may also provide a bridge between BIAF and inventory-management systems.
-
-A future integration could allow verified commercial events to produce corresponding inventory movements, for example:
-
-- Seller invoice → inventory reduction
-- Buyer goods receipt → inventory increase
-- Credit note / return → corresponding inventory reversal
-
-The current objective is **not to transform BIAF into a complete ERP or warehouse-management system**.
-
-Instead, BIAF is intended to explore how blockchain-verified commercial events can communicate with existing inventory or ERP systems through adapters, APIs, or standardized event structures.
-
----
-
-## Research Context
-
-BIAF is informed by ongoing academic research into:
-
-- Blockchain-integrated accounting systems
-- Distributed ledger technology and financial reporting
-- Automated accounting
-- Auditability and reconciliation
-- Internally generated intangible assets
-- Human supervision of automated systems
-- Blockchain-based commercial infrastructure
-
-Two academic articles relating to the project are currently pending publication.
-
-Links and full citations will be added to this repository following publication.
-
----
-
-## Public Demonstration
-
-The public repository includes material demonstrating the current BIAF prototype and its operating workflows.
-
-The demonstration illustrates how commercial documents, blockchain transactions, settlement, and conventional accounting outputs interact within the framework.
-
-Additional demonstrations will be added as new modules are completed.
-
----
-
-## Development Roadmap
-
-### Completed / Current Core Architecture
-
-The prototype currently includes:
-
-- Invoice and receipt workflows
-- Buyer and seller wallet interaction
-- Cryptographic document acceptance
-- Stablecoin settlement
-- Partial payments
-- Automated journal generation
-- Accounts receivable and payable
-- VAT accounting
-- Trial balance generation
-- Financial reporting logic
-- Audit and reconciliation functionality
-- CSV / accounting-data export
-- Credit notes
-- Credit application
-- Refund workflows
-- Credit-note accounting and audit logic
-
-Additional independent testing of the existing implementation is ongoing.
-
----
-
-### Phase 1 — Detailed Commercial Documents, Packing Lists and Inventory Integration
-
-Develop structured commercial-document information associated with BIAF invoices and receipts.
-
-Planned areas include:
-
-- Goods and service descriptions
-- Quantities and unit values
-- VAT information
-- Vendor and customer information
-- Packing-list / delivery information
-- Cryptographic association between detailed off-chain documents and blockchain records
-- Document-integrity verification
-- Conceptual and technical integration with external inventory-management systems
-
----
-
-### Phase 2 — Equity and Corporate Accounting
-
-Extend BIAF beyond commercial transactions into corporate and equity-related accounting.
-
-Potential areas include:
-
-- Corporate incorporation records
-- Shareholder accounts / wallet identities
-- Capital contributions
-- Share issuance
-- Ownership changes
-- Equity transactions
-- Distributions
-- Related journal and reporting logic
-
-The objective is to explore how verifiable corporate events can be connected to conventional equity accounting.
-
----
-
-### Phase 3 — Payroll and Employee Accounting
-
-Develop payroll-related transaction and accounting workflows.
-
-Potential areas include:
-
-- Salary expenses
-- Employee liabilities
-- Payroll settlement
-- Taxes and deductions
-- Employer obligations
-- Corresponding accounting entries
-
-Because payroll involves sensitive personal information, privacy and appropriate separation between public blockchain data and confidential employee information will be central design requirements.
-
----
-
-### Phase 4 — Public Testnet Deployment
-
-Following completion and validation of the major accounting modules, BIAF will move from its current local Hardhat environment to suitable public blockchain testnets.
-
-Candidate infrastructure will be evaluated according to criteria including:
-
-- Low transaction costs
-- Transaction throughput
-- EVM compatibility where advantageous
-- Stablecoin infrastructure
-- Wallet ecosystem
-- Privacy and identity capabilities
-- Developer tooling
-- Suitability for commercial and accounting transaction volumes
-
-The public-testnet phase will allow the framework to be evaluated under real blockchain-network conditions.
-
----
-
-### Phase 5 — AI-Agent Integration
-
-Once the underlying commercial and accounting architecture has matured and has been tested on public infrastructure, BIAF will investigate AI-agent integration.
-
-Potential agent functions include:
-
-- Procurement operations
-- Sales processing
-- Commercial-document preparation
-- Transaction preparation
-- Accounting classification
-- Reconciliation
-- Audit assistance
-- Financial monitoring
-
-AI agents are envisioned as operational participants rather than unrestricted autonomous actors.
-
-Economically significant actions would remain subject to identifiable human supervision through mechanisms such as:
-
-- Wallet signatures
-- Cryptographic approvals
-- Role-based permissions
-- Transaction limits
-- Human review
-
-The objective is to combine machine-driven operational efficiency with identifiable human responsibility and auditability.
-
----
-
-## Longer-Term Direction
-
-The long-term objective of BIAF is to progressively expand blockchain-integrated accounting across the major components of a conventional accounting system.
-
-This includes:
-
-- Current assets
-- Fixed assets
-- Inventory
-- Receivables
-- Cash and settlement accounts
-- Liabilities
-- Equity
-- Revenue
-- Expenses
-- Payroll
-- Taxation
-- Financial reporting
-- Audit and reconciliation
-
-The broader research question is whether blockchain infrastructure can become a verifiable economic-event layer beneath conventional accounting systems without requiring businesses to abandon established accounting principles, reporting structures, or supervisory controls.
-
----
-
-## Repository Structure and Disclosure
-
-This repository serves as the public development and research repository for BIAF.
-
-It contains or will progressively contain:
-
-- Prototype source code
-- Smart-contract implementations
-- User-interface components
-- Accounting-engine components
-- Architecture documentation
-- Demonstration material
-- Research context
-- Development roadmap
-- Testing material
-- Future public-testnet implementations
-
-The framework remains under active development, and individual components may be refactored or reorganized as the architecture evolves.
-
----
-
-## Status
-
-BIAF is an **active research and development project with a functional working prototype**.
-
-The project has moved beyond its initial invoice-and-settlement proof of concept and currently supports a substantially broader commercial, accounting, reporting, credit-note, and audit workflow.
-
-The current development focus is the integration of richer commercial-document information and inventory-related functionality.
-
-Interfaces, architecture, accounting mappings, and implementation details may continue to evolve as the framework expands and undergoes further testing.
-
----
-
-## License
-
-Licensing arrangements for BIAF and its individual components remain under evaluation as the project develops.
-
-Unless explicitly stated otherwise in a component-specific license, publication of source code in this repository should not be interpreted as granting rights beyond those provided by the applicable repository or file-level license.
+Developed by **Andreas Georgiou** as part of blockchain-integrated accounting research.
