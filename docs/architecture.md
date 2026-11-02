@@ -1,211 +1,78 @@
-# BIAF System Architecture
+# BIAF Architecture — V4
 
-## Purpose of This Document
+Status: local research prototype, 2 November 2026. This overview describes the implemented USDC V4 responsibilities and separates them from future modules. It does not assert production readiness or universal accounting compliance.
 
-This document provides a **high-level architectural overview** of the Blockchain-Integrated Accounting Framework (BIAF).
+## Layers and responsibilities
 
-The goal is to describe:
-- the main system components,
-- their responsibilities,
-- and their interactions,
+| Layer | Current responsibility |
+| --- | --- |
+| On-chain execution | Commercial document identities/state, authorization, acceptance, USDC settlement, credit-note relationships, events, attachment hash commitments and optional aggregate inventory declarations |
+| Accounting interpretation | Supported event-to-journal mappings, buyer classifications, VAT treatment, linked-credit accounting and explicit local inventory adjustments |
+| Local persistence | Wallet/chain/ledger-scoped catalogue, drafts, valuation versions, PDF files and accounting records in browser storage |
+| Reporting and reconciliation | Journal/counterparty views, trial balance, VAT, periodic COGS/P&L, posted-journal balance sheet and audit/reconciliation checks |
+| Human interaction | Preparation, review, wallet signing, local valuation approval, classification decisions, explicit postings, BDE and backup/export |
 
-without committing to a fixed implementation or production-ready design.
+Historical ETH-denominated prototypes informed the project. The maintained V4 implementation described here uses USDC-denominated commercial values and settlement on EVM execution infrastructure. Historical variants should not be assumed to have identical current feature coverage.
 
-BIAF is an **experimental and research-oriented framework**, and the architecture described here is intended to support clarity, reviewability, and progressive refinement.
+## Commercial lifecycle
 
----
-### Asset Denomination and Prototype Variants
+A seller issues an invoice or receipt identifying the counterparty, amounts and description. Buyer acceptance and payment follow the rules of the document type. Receipts and invoices do not have identical acceptance/payment semantics.
 
-BIAF has been explored through multiple prototype configurations that share the same architectural principles but differ in asset denomination.
+Credit notes are subsequent linked events. Separate routes and credit purposes control acknowledgment, correction allocation, commercial credit and eligible refunds. A credit does not edit the earlier transaction history. The accounting layer applies the corresponding treatment based on the document's state and accepted/recorded transactions; mere issuance is not a universal instruction to recognize every document as a completed sale.
 
-Current experimental implementations include:
-- an ETH-denominated configuration, where transaction execution, settlement, and unit of account are native to ETH, and
-- a stable-denominated configuration, where a fiat-referenced token (e.g. USDC) is used as the unit of account and settlement asset, while Ethereum provides execution, finality, and metadata.
+Wallet signatures identify the authorizing wallet. The local registry associates wallets with business details and analytical accounts; this is not an independent identity-verification service.
 
-These variants are used to study how accounting interpretation, valuation stability, and reporting logic behave under different monetary assumptions, without altering the core framework architecture.
-Both configurations share identical accounting interpretation logic; only the unit of account and settlement asset differ.
+## Supporting PDF lifecycle
 
-## Architectural Principles
+The seller maintains a local catalogue and editable supporting drafts. PDF preparation captures commercial lines, business-detail snapshots and the issuance context in a frozen file. The file receives a printed attachment reference; its exact bytes produce the hash committed at issuance.
 
-BIAF is guided by the following architectural principles:
+A counterparty obtains the original file through an agreed channel and imports it against the loaded document. Verification checks the hash and corresponding context. Identical totals alone do not establish a match. A stored, verified reference helps identify the same file later.
 
-- **Accounting-aware design**  
-  Blockchain transactions are interpreted as economic events with accounting meaning, not merely state changes.
+The assigned BIAF document number is established during issuance. The committed PDF is not subsequently rewritten to add the number, acceptance or settlement status. Those facts are shown in the application. Manually written supporting references are aids to navigation and remain subject to verification.
 
-- **Separation of concerns**  
-  Execution, interpretation, supervision, and reporting are treated as distinct layers.
+Draft/PDF deletion before issuance requires a successful live check of the relevant attachment bindings. Issued files stay unchanged. The seller's restore input recovers a local copy for an already loaded document; it is not a reverse-document search.
 
-- **Human accountability**  
-  Final execution authority remains with human-controlled cryptographic identities (wallets).
+This design proves the integrity/association of supplied bytes, not the physical delivery, legal validity or valuation accuracy of the underlying transaction.
 
-- **Progressive disclosure**  
-  Components are documented and released incrementally as they stabilize.
+## Inventory valuation, accounting and BDE
 
+V4 records accountant-supplied opening/adoption and closing values by supported inventory category and reporting period. Method, basis and evidence metadata accompany local approval. Replacement preserves earlier approved versions; carry-forward references an approved preceding close. An external JSON valuation is loaded for review rather than automatically approved or posted.
 
----
+Three operations remain distinct:
 
-## High-Level Component Overview
+1. **Local approval** preserves the valuation version.
+2. **Journal posting** explicitly records reviewed opening/closing adjustments.
+3. **BDE** optionally registers the approved aggregate value and identifiers on-chain.
 
-At a high level, BIAF consists of the following layers:
+Item/category details and evidence do not become public merely because an aggregate is registered. A declaration's registration time is distinct from the reporting-period effective date and the local approval timestamp.
 
-1. **On-chain execution layer**
-2. **Accounting interpretation layer**
-3. **Supervision and authorization layer**
-4. **Off-chain accounting and reporting layer**
-5. **User interfaces (experimental)**
+An approved valuation may supply periodic COGS before a related journal adjustment is posted. The balance sheet follows cumulative posted journals. Reconciliation information exposes this distinction. V4's inventory postings do not constitute complete incorporation, full opening-balance migration or formal annual closing and distribution.
 
-Each layer is described below.
+## Data boundary
 
----
+| Information | On-chain in V4 | Local / off-chain in V4 |
+| --- | --- | --- |
+| Commercial identity, parties' wallets, amounts, descriptions, state and events | Yes | Read and interpreted by the UI |
+| Supporting PDF commitment | Exact file hash and document binding | Original file, embedded record and business details |
+| Item descriptions, units, quantities and unit prices | Not as full packing-list data | Catalogue, draft and PDF |
+| Journal construction and analytical classification | No | Yes |
+| Valuation approval and category/evidence detail | No | Yes |
+| Optional inventory BDE | Aggregate declaration, period/type/entity and version relationship | Approval record and detailed support |
+| Financial statement preparation | No complete statement-publication workflow | Current local reports |
+| Equity/payroll/fixed-asset module events and their BDE | Planned scope | Not implemented as full V4 modules |
 
-## 1. On-Chain Execution Layer
+Descriptions entered on-chain are visible within that chain's access model. Off-chain document design does not make on-chain descriptions confidential. The user decides what description to submit.
 
-### Role
+## Storage, backup and scope
 
-The on-chain layer is responsible for:
-- representing transactional state,
-- enforcing execution rules,
-- and providing cryptographically verifiable records.
+Local storage is separated by relevant chain, ledger and wallet identifiers, within the browser origin. The same hostname/port and browser profile matter for recovery. Journal JSON, inventory JSON and original PDFs preserve different parts of the application; none is a complete substitute for the others or for blockchain history.
 
-### Typical responsibilities include:
-- invoice representation
-- payment execution
-- emitting structured events for off-chain interpretation
+A restarted ephemeral development chain can reuse deterministic addresses while losing all earlier events. Local files surviving that restart do not prove issuance on the new history. Restore/import must not silently treat stale test events as current facts.
 
-### Design constraints
-- Deterministic execution
-- Minimal accounting logic embedded on-chain
-- Clear event semantics for downstream processing
+## Reporting, interoperability and limitations
 
-The on-chain layer **does not attempt** to replicate full accounting systems.
+Reporting uses the prototype's explicit accounting mappings and input completeness. Arithmetic balance does not certify completeness, compliance or independent assurance. VAT and tax-deductibility choices require accountable human interpretation.
 
----
+CSV/JSON exports support review, backup and processing. Direct use in an ERP requires a mapped adapter or compatible importer and its own validation. V4 is not a perpetual IMS, automatic valuation engine or ready-made ERP connector.
 
-## 2. Accounting Interpretation Layer
-
-### Role
-
-This layer maps on-chain events to **accounting-relevant representations**, such as:
-- journal entries
-- account balances
-- transaction classifications
-
-### Characteristics
-- May operate off-chain
-- Uses on-chain data as an authoritative source
-- Applies predefined accounting rules and mappings
-
-This layer is where:
-- double-entry logic is applied,
-- chart-of-accounts mappings are defined,
-- accounting assumptions are made explicit and auditable.
-
----
-
-## 3. Supervision and Authorization Layer
-
-### Role
-
-BIAF emphasizes **explicit supervision** over autonomous execution.
-
-This layer governs:
-- who is allowed to initiate actions,
-- who must approve them,
-- and how responsibility is assigned.
-
-### Core concepts
-- Wallets represent accountable actors
-- Cryptographic signatures express consent and authority
-- Roles (e.g. seller, buyer, supervisor) constrain permissible actions
-
-All economically meaningful actions are intended to be:
-- attributable,
-- reviewable,
-- and non-anonymous within the system’s context.
-
----
-
-## 4. Off-Chain Accounting and Reporting Layer
-
-### Role
-
-This layer bridges blockchain execution with traditional accounting workflows.
-
-### Responsibilities may include:
-- maintaining an off-chain ledger mirror
-- exporting accounting data in standard formats
-- supporting reconciliation and reporting processes
-
-This layer is designed to:
-- integrate with existing accounting tools,
-- not replace established ERP or reporting systems.
-
----
-
-## 5. User Interfaces (Experimental)
-
-### Role
-
-User interfaces provide:
-- visibility into transactions and ledger entries,
-- interaction with on-chain execution,
-- supervision and approval workflows.
-
-### Characteristics
-- Experimental and subject to change
-- Intended for demonstration and testing
-- Not production-grade at the current stage
-
-Different interfaces may exist for:
-- sellers,
-- buyers,
-- supervisory roles.
-
----
-
-## On-Chain vs Off-Chain Responsibilities
-
-BIAF deliberately avoids overloading the blockchain with accounting logic.
-
-| Function                          | On-Chain | Off-Chain |
-|----------------------------------|----------|-----------|
-| Transaction execution            | ✔        |           |
-| State finality                   | ✔        |           |
-| Event emission                   | ✔        |           |
-| Journal entry construction       |          | ✔         |
-| Chart of accounts mapping        |          | ✔         |
-| Financial statement preparation  |          | ✔         |
-
-This separation supports flexibility, scalability, and auditability.
-
----
-
-## Extensibility and Future Considerations
-
-The architecture is designed to allow future extensions, including:
-- expanded accounting coverage,
-- additional supervision models,
-- optional AI-assisted tooling,
-- Layer 2 deployment scenarios.
-
-Such extensions are **non-mandatory** and subject to further research and validation.
-
----
-
-## Limitations
-
-- The framework does not claim regulatory compliance.
-- Accounting interpretations depend on explicit assumptions.
-- Jurisdiction-specific requirements are out of scope at this stage.
-- Security and correctness require ongoing review.
-
----
-
-## Status
-
-This architecture description reflects the **current research understanding** of the BIAF system.
-
-It is expected to evolve as:
-- documentation improves,
-- components are released,
-- and feedback is incorporated.
+Future work includes equity, coordinated audit status expansion, payroll, fixed assets, broader optional BDE publication, network/testnet evaluation and supervised assistance. See the [roadmap](../roadmap/roadmap-2025-26.md).
